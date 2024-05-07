@@ -29,6 +29,37 @@ ps -aux | grep prometheus
 - IP Address: 137.184.226.152
 - URL: https://prometheus.domhallan-devops.com/
 
+Since I have already set up the domain name, I can get a free certificate using Certbot.
+
+Certbot will install a LetsEncrypt SSL certificate for free.
+
+Ensure your domain name has propagated before running CertBot.
+
+Your domain and IP will be different from mine, and note that it may take some time for the DNS record to propagate across the internet.
+
+On my server, I will run
+
+```bash
+sudo snap install core; sudo snap refresh core
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+```
+
+Now we can run CertBot.
+
+```bash
+sudo certbot --nginx
+```
+
+Follow the prompts and select the domain name I want to secure.
+
+Next open the Nginx Prometheus config file we created earlier to see the changes.
+
+```bash
+sudo nano /etc/nginx/sites-enabled/prometheus
+```
+
+
 Tool for looking up `cname` information: https://mxtoolbox.com/CnameLookup.aspx
 
 Save and test the new configuration has no errors
