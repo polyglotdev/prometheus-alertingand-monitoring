@@ -189,3 +189,42 @@ It will automatically set up two metrics endpoints.
 
 - Prometheus: [link](http://127.0.0.1:9090/metrics)
 - Node Exporter: [link](http://127.0.0.1:9100/metrics)
+
+## Scrape Targets Basics
+
+[Instructor Notes](https://sbcode.net/prometheus/scrape-targets/)
+
+In Prometheus, a "scrape target" refers to any system or endpoint that provides metrics data in a format that Prometheus can fetch and store. These targets are essentially instances that Prometheus polls at regular intervals to collect metrics, which are then used for monitoring and alerting.
+
+### Key Concepts
+
+1. **Endpoints**: A scrape target is typically an HTTP endpoint that exposes metrics in a format Prometheus understands—usually as plaintext in a simple line-based format where each line contains a metric, its value, and optionally, a set of labels.
+
+2. **Scrape Configuration**: Prometheus uses a configuration file (usually called `prometheus.yml`) where you define the details of scrape targets. These details include the frequency of scraping (how often Prometheus collects data), the specific endpoints to scrape, and any additional parameters like timeout limits or authentication details.
+
+3. **Job and Instance**: In the context of scraping:
+   - **Job**: A job is a collection of similar scrape targets that share a common purpose. For example, you might have a job to scrape metrics from all instances of a microservice in your infrastructure.
+   - **Instance**: Each target within a job is called an instance. If your job is to monitor multiple replicas of a service, each replica would be an instance.
+
+### Example Configuration
+
+Here's a simple example of a scrape configuration in a Prometheus `prometheus.yml` file:
+
+```yaml
+scrape_configs:
+  - job_name: 'example-job'
+    scrape_interval: '15s'  # How often Prometheus scrapes metrics
+    static_configs:
+      - targets: ['192.168.1.1:9090', '192.168.1.2:9090']  # List of scrape targets
+```
+
+In this example:
+- `job_name` defines the name of the job.
+- `scrape_interval` specifies that Prometheus should scrape metrics every 15 seconds.
+- `targets` are the actual endpoints Prometheus will hit to pull metrics.
+
+### How It Works
+
+During operation, Prometheus regularly hits the endpoints specified under each job's `targets`. Each target needs to expose metrics in a way that Prometheus can parse. This is often facilitated by client libraries available for various programming languages that automatically format the metrics correctly.
+
+When Prometheus scrapes a target, it pulls the data and stores it internally, using a time series format. This data is then available for querying using Prometheus's query language (PromQL), and it can be visualized in dashboards using tools like Grafana.
