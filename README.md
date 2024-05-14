@@ -228,3 +228,80 @@ In this example:
 During operation, Prometheus regularly hits the endpoints specified under each job's `targets`. Each target needs to expose metrics in a way that Prometheus can parse. This is often facilitated by client libraries available for various programming languages that automatically format the metrics correctly.
 
 When Prometheus scrapes a target, it pulls the data and stores it internally, using a time series format. This data is then available for querying using Prometheus's query language (PromQL), and it can be visualized in dashboards using tools like Grafana.
+
+## Delete time series data
+
+There may be a time when you want to delete data from the Prometheus `TSDB` database. Data will be automatically deleted after the storage retention time has passed. By default, it is 15 days. If you want to delete specific data earlier, then you are able. You need to enable the admin API in Prometheus before you can.
+
+```bash
+sudo nano /etc/prometheus/prometheus.yml
+```
+
+Add the following lines to the configuration file.
+
+```yaml
+ARGS= "--web.enable-admin-api"
+```
+
+Save and exit the file.
+
+Restart Prometheus.
+
+```bash
+sudo service prometheus restart
+```
+
+Check status.
+
+```bash
+sudo service prometheus status
+```
+
+You can now make calls to the admin API.In my example I want to delete all time series for the instance="sbcode.net:9100" So I run the delete_series API endpoint providing the value to match. E.g.,
+
+```bash
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={instance="sbcode.net:9100"}'
+```
+
+So I run the delete_series API endpoint providing the value to match. E.g.,
+
+```bash
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={instance="sbcode.net:9100"}'
+```
+
+When I re-execute the Prometheus query, the time series I wanted to be deleted no longer exists.
+
+You can have more complicated match queries, e.g.,
+
+```bash
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]=a_bad_metric&match[]={region="mistake"}'
+
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]=node_exporter:memory:percent'
+
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]=node_filesystem_free_percent'
+
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]=node_memory_MemFree_percent'
+
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]=ALERTS'
+
+curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]=ALERTS_FOR_STATE'
+```
+
+After deleting you can disable the admin API by removing the line from the configuration file.
+
+```bash
+sudo nano /etc/prometheus/prometheus.yml
+```
+
+Remove the line.
+
+```yaml
+ARGS= "--web.enable-admin-api"
+```
+
+Restart and check the status of Prometheus.
+
+```bash
+sudo service prometheus restart
+sudo service prometheus status
+```
