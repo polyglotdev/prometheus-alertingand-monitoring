@@ -141,7 +141,7 @@ nginx -t
 
 Restart Nginx
 
-```
+```bash
 sudo service nginx restart
 sudo service nginx status
 ```
@@ -187,5 +187,5 @@ apt install prometheus
 
 It will automatically set up two metrics endpoints.
 
-- Prometheus : http://127.0.0.1:9090/metrics
-- Node Exporter : http://127.0.0.1:9100/metrics
+- Prometheus: [link](http://127.0.0.1:9090/metrics)
+- Node Exporter: [link](http://127.0.0.1:9100/metrics)
