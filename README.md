@@ -428,3 +428,96 @@ Convert it to a range vector and get the per-second derivative of the time serie
 
 - [PromQL Functions](https://prometheus.io/docs/prometheus/latest/querying/functions/)
 - [Google Regular Expression (RE2) Syntax](https://github.com/google/re2/wiki/Syntax)
+
+## Recording Rules
+
+Time series queries can quickly become quite complicated to remember and type using the Expression Browser in the default Prometheus User Interface.
+
+Example query: `100 - (100 * node_memory_MemFree_bytes / node_memory_MemTotal_bytes)`
+
+Rather than remembering and typing this query every time, we can create a recording rule that will run at a chosen interval and make the data available as a time series.
+
+!['Example Prometheus Time Series Graph](image.png))
+
+### Recording Rule Example 1
+
+CD into the /usr/local/bin/prometheus folder
+
+`cd /etc/prometheus`
+
+Create a new file called _prometheus\_rules.yml_
+
+`sudo nano prometheus_rules.yml`
+
+Add our test expression as a recording rule
+
+```yaml
+groups:
+  - name: custom_rules
+    rules:
+      - record: node_memory_MemFree_percent
+        expr: 100 - (100 * node_memory_MemFree_bytes / node_memory_MemTotal_bytes)`
+```
+
+Save it, and we can now verify the syntax is ok.
+
+Prometheus now comes with a tool called `Promtool` which you can use to check your rules files and other things.
+
+We will check our rules file is ok.
+
+`promtool check rules prometheus_rules.yml`
+
+The response should contain **SUCCESS** otherwise there was a problem with your _prometheus\_rules.yml_ file.
+
+Now let's add the _prometheus\_rules.yml_ reference to the _prometheus.yml_ rule\_files section.
+
+```yaml
+rule_files:
+  - "prometheus_rules.yml"`
+```
+
+And restart the Prometheus service.
+
+```bash
+sudo service prometheus restart
+sudo service prometheus status
+```
+
+Refresh the Prometheus user interface and check the dropdown
+![node memory free percent' now appearing in the dropdown](image-1.png)
+
+### Recording Rule Example 2
+
+Let's do another more complicated example.
+
+Update our _prometheus\_rules.yml_ file with,
+
+```yaml
+groups:
+  - name: custom_rules
+    rules:
+      - record: node_memory_MemFree_percent
+        expr: 100 - (100 * node_memory_MemFree_bytes / node_memory_MemTotal_bytes)
+
+      - record: node_filesystem_free_percent
+        expr: 100 * node_filesystem_free_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}`
+```
+
+Check it with the `promtool`
+
+`promtool check rules prometheus_rules.yml`
+
+If all is ok, restart the Prometheus service.
+
+`sudo service prometheus restart
+sudo service prometheus status`
+
+Refresh the Prometheus user interface and check the drop-down.
+
+![node filesystem free percent' now appearing in the dropdown](image-2.png)
+
+## Recording Rules Useful Links
+
+- [Recording Rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#defining-recording-rules)
+- [PromQL Operators](https://prometheus.io/docs/prometheus/latest/querying/operators/)
+- [Metric Names](https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels)
