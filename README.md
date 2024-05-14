@@ -305,3 +305,49 @@ Restart and check the status of Prometheus.
 sudo service prometheus restart
 sudo service prometheus status
 ```
+
+Prometheus uses a powerful and flexible query language called PromQL (Prometheus Query Language). PromQL allows you to retrieve and manipulate data stored in Prometheus's time series database. It's specifically designed to handle the multidimensional data model of Prometheus, where time series data is identified by metric name and key/value pairs called labels.
+
+### Key Features of PromQL
+
+1. **Time Series Selection**: PromQL lets you select time series data based on metric names and labels. For example, you can query all time series for a specific application or service, or filter out time series based on environmental tags like `production` or `staging`.
+
+2. **Operators and Functions**: PromQL supports a wide range of operators and functions. These include mathematical operations, logical/set operations on labels, and more complex functions for handling time series data such as `rate()`, `increase()`, and `histogram_quantile()`.
+
+3. **Aggregation**: PromQL allows you to perform various aggregation operations over time series. You can aggregate across the dimensions represented by labels, using functions like `sum()`, `avg()`, `min()`, `max()`, and `count()`. These can be very powerful when you need to summarize data, like calculating the total number of requests across all instances of a service.
+
+### Example Queries
+
+Here are a few example queries to illustrate how PromQL is used:
+
+- **Basic Metric Query**:
+  ```promql
+  http_requests_total
+  ```
+  This query retrieves all time series data for the metric `http_requests_total`.
+
+- **Filtering by Label**:
+  ```promql
+  http_requests_total{method="POST", status="200"}
+  ```
+  This retrieves all time series data for `http_requests_total` where the HTTP method is POST and the response status is 200.
+
+- **Calculating Rate**:
+  ```promql
+  rate(http_requests_total[5m])
+  ```
+  This calculates the per-second rate of HTTP requests over the last 5 minutes. Useful for metrics like HTTP requests or system calls that are counters.
+
+- **Aggregations Across Labels**:
+  ```promql
+  sum(rate(http_requests_total[5m])) by (service)
+  ```
+  This query calculates the total rate of HTTP requests over the last 5 minutes, grouped by the `service` label, which could represent different services in your infrastructure.
+
+### Integration with Visualization Tools
+
+PromQL is not only useful through the Prometheus UI but is also extensively used in visualization tools like Grafana. In Grafana, you can write PromQL queries to create dashboards that dynamically represent the metrics as charts, graphs, and alerts, providing a real-time overview of system health and performance.
+
+### Learning and Using PromQL
+
+To effectively use PromQL, it's beneficial to have a solid understanding of your system's metrics, what they represent, and how they are labeled. Experimenting with queries directly in the Prometheus web UI, where you can see instant results, is a great way to learn. Additionally, there are many resources and tutorials available online that can deepen your understanding of PromQL's capabilities and how to use them to monitor and alert on your specific systems.
