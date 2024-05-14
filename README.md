@@ -351,3 +351,80 @@ PromQL is not only useful through the Prometheus UI but is also extensively used
 ### Learning and Using PromQL
 
 To effectively use PromQL, it's beneficial to have a solid understanding of your system's metrics, what they represent, and how they are labeled. Experimenting with queries directly in the Prometheus web UI, where you can see instant results, is a great way to learn. Additionally, there are many resources and tutorials available online that can deepen your understanding of PromQL's capabilities and how to use them to monitor and alert on your specific systems.
+
+Now that we have a few scrape targets, it is time to delve into queries.
+
+The query language used in Prometheus is called PromQL (Prometheus Query Language).
+
+The data can either be viewed as a graph, as tabled data, or in external systems such as Grafana, Zabbix and others.
+
+Example,
+
+`scrape_duration_seconds`
+
+This shows multiple time series results. 1 for each target,
+
+we can filter for 1 target by including either the `instance`, or `job` labels
+
+`scrape_duration_seconds{instance="localhost:9100"}`
+
+### Regular Expressions
+
+We can also use regular expressions. Go back to the console view and query for `node_cpu_seconds_total` We should get about 8 time series results. Let's filter for everything with `mode` containing `irq`
+
+`node_cpu_seconds_total{mode=~".*irq"}`
+
+All regular expressions in Prometheus use the [RE2](https://github.com/google/re2/wiki/Syntax) syntax.
+
+### Data Types
+
+#### Scalar
+
+A numeric floating point value. Examples of scalars include `-1`, `12.34` and `12345678.9`
+
+#### Instant vector
+
+A set of time series containing a single sample for each time series, all sharing the same timestamp `scrape_duration_seconds{instance="localhost:9100"}`
+
+#### Range Vector
+
+A set of time series containing a range of data points over time for each time series.
+
+Return a whole range of `scrape_duration_seconds` (in this case 5 minutes) for the same vector, making it a range vector.
+
+`node_netstat_Tcp_InSegs{instance="localhost:9100"}[5m]`
+`node_netstat_Tcp_InSegs{instance="localhost:9100"}[1m]`
+`node_netstat_Tcp_InSegs{instance="localhost:9100"}[30s]`
+
+Press the graph, we get an error saying that `expression type "range vector" for range query, must be Scalar or instant Vector`
+
+So when in the graph view, remove the `[5m]` range option.
+
+### Functions
+
+`rate(scrape_duration_seconds{instance="localhost:9100"}[1m:20s])`
+
+Start with `node_netstat_Tcp_InSegs`
+
+create a range vector covering `1m` `node_netstat_Tcp_InSegs[10m]`
+
+filter for the job `prometheus` `node_netstat_Tcp_InSegs{job="prometheus"}[10m]`
+
+calculates the per-second average rate of increase of the time series in the range vector `rate(node_netstat_Tcp_InSegs[10m])`
+
+sum the 2 values `sum(go_threads)`
+
+### Sub Queries
+
+Start with this instant vector `node_netstat_Tcp_InSegs{instance="localhost:9100"}`
+
+Convert it to a Range Vector and then convert it back to an instant vector using rate `rate(node_netstat_Tcp_InSegs{instance="localhost:9100"}[1m])`
+
+Wrap it in the ceiling function `ceil(rate(node_netstat_Tcp_InSegs{instance="localhost:9100"}[1m]))`
+
+Convert it to a range vector and get the per-second derivative of the time series `deriv(ceil(rate(node_netstat_Tcp_InSegs{instance="localhost:9100"}[1m]))[1m:])`
+
+## Useful Links
+
+- [PromQL Functions](https://prometheus.io/docs/prometheus/latest/querying/functions/)
+- [Google Regular Expression (RE2) Syntax](https://github.com/google/re2/wiki/Syntax)
